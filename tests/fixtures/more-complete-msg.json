@@ -1,0 +1,44 @@
+{
+    "_message_type":"spanreport",
+    "_message_version":1,
+    "_id": "00000000000040000000000000000000",
+    "_span":{
+        "version": 2,
+        "name": "test-trace",
+        "kind": "INTERNAL",
+        "trace_id": "00000000000000000000000000001773",
+        "span_id": "0000000000001774",
+        "start_time_unix_nano": 1000000000,
+        "end_time_unix_nano": 61000000000,
+        "attributes": {
+            "service.name": "test-ctracing",
+            "duration_nano": 60000000000,
+            "duration": 60,
+            "exit.code": 0
+        },
+        "events": [
+            {
+                "name": "event1",
+                "time_unix_nano": 11000000000
+            },
+            {
+                "name": "event2 with attribue",
+                "time_unix_nano": 21000000000,
+                "attributes": {
+                    "an.attribute.key": "attribute.value"
+                }
+            }
+        ],
+        "links": [
+            {
+                "context": {
+                    "trace_id": "000000000000000000000000aa001775",
+                    "span_id": "00000000bb001776"
+                },
+                "attributes": {
+                    "link.attr": "link.val"
+                }
+            }
+        ]
+    }
+}
