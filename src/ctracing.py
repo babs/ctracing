@@ -283,6 +283,16 @@ def init_parent(
         context.attach(trace.set_span_in_context(NonRecordingSpan(span_context)))
 
 
+def init_parent_from_traceparent(traceparent: str) -> bool:
+    traceparent_splited = traceparent.split("-")
+    if len(traceparent_splited) != 4:
+        return False
+    trace_id = traceparent_splited[1]
+    parent_span_id = traceparent_splited[2]
+    init_parent(trace_id, parent_span_id)
+    return True
+
+
 def init_parent_from_env():
     traceparent = os.environ.get("TRACEPARENT")
     if traceparent is not None:

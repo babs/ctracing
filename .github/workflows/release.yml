@@ -1,0 +1,40 @@
+name: "Build and release"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+
+      - name: requirements
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements-release.txt
+
+      - name: tests
+        run: |
+          pip install -e .[full]
+          pytest --cov-report html --cov-report term --cov-report xml:cov.xml
+
+      - name: build
+        run: |
+          VERSION=${GITHUB_REF_NAME##v}
+          echo $VERSION > VERSION
+          python -m build -s -w
+
+      - name: check pypi tokens
+        run: |
+          echo PIPY_CONFIGURED=$([ -z "${{ secrets.PIPY_REPOSITORY }}" -o -z "${{ secrets.PIPY_USERNAME }}" -o -z "${{ secrets.PIPY_PASSWORD }}" ] && echo n || echo y) >>$GITHUB_ENV
+
+      - name: release
+        if: ${{ env.PIPY_CONFIGURED == 'y' }}
+        run: |
+          twine upload --repository-url ${{ secrets.PIPY_REPOSITORY }} -u ${{ secrets.PIPY_USERNAME }} -p ${{ secrets.PIPY_PASSWORD }} dist/* --verbose

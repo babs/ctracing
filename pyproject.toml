@@ -18,6 +18,9 @@ otlp = ["opentelemetry-exporter-otlp"]
 full = ["ctracing[http,otlp]"]
 tests = ["ctracing[full]", "pytest"]
 
+[project.urls]
+homepage = "https://github.com/babs/ctracing"
+
 [tool.setuptools]
 package-dir = { "" = "src" }
 

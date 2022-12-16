@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 import os
+import random
+import string
 from unittest import mock
 
 import pytest
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
 
 import ctracing
 
+
 tracer = ctracing.init_tracer("test-ctracing")
+
+
+@pytest.fixture
+def random_name():
+    return "".join(random.choices(string.ascii_letters + string.digits, k=20))
 
 
 @pytest.fixture
@@ -22,18 +32,39 @@ def _check_initial_state():
     assert span_id == "0000000000000000"
 
 
-def test_main_simplespan():
+def test_main_simplespan(random_name):
+    spans: list[ctracing.ReadableSpan] = []
+
     def inner(span: ctracing.ReadableSpan) -> bool:
-        ...
+        spans.append(span)
+        return True
 
     ctracing.add_simplespan_processor(ctracing.CallbackSpanExporter(inner))
-
-
-def test_main_batchspan():
-    def inner(span: ctracing.ReadableSpan) -> bool:
+    with tracer.start_as_current_span(random_name):
         ...
 
+    assert len(spans) == 1
+    assert spans[0].name == random_name
+
+
+def test_main_batchspan(random_name):
+    spans: list[ctracing.ReadableSpan] = []
+
+    def inner(span: ctracing.ReadableSpan) -> bool:
+        spans.append(span)
+        return True
+
     ctracing.add_batchspan_processor(ctracing.CallbackSpanExporter(inner))
+
+    with tracer.start_as_current_span(random_name):
+        ...
+
+    tp: TracerProvider = trace.get_tracer_provider()  # type: ignore
+    for processors in tp._active_span_processor._span_processors:
+        processors.force_flush()
+
+    assert len(spans) == 1
+    assert spans[0].name == random_name
 
 
 def test_get_span_hex_context():
